@@ -68,6 +68,11 @@ cd rosa-bgp
 You might want to update at least "aws_region" and "owner" variable
 ```hcl
 aws_region = "eu-central-1"
+
+# Optional: override AZs if your account/region does not use a/b/c
+# Example for ca-central-1: ["ca-central-1a", "ca-central-1b", "ca-central-1d"]
+# azs = ["ca-central-1a", "ca-central-1b", "ca-central-1d"]
+
 owner = "CHANGE-ME" # used as tag Owner = var.owner for AWS resources
 project = "ROSA-Virt BGP" # used as tag Project = var.project for AWS resources
 project_id = "-bgp" # Optional: appended to AWS resource names after owner for easier identification, e.g. name = "${var.owner}${var.project_id}-vpc1-rosa". If kept empty, then it will be omitted
