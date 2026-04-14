@@ -173,6 +173,8 @@ The CronJob:
 3. Deletes peers whose IPs don't match any active nodes
 4. Enforces a 30-minute minimum age to prevent race conditions
 
+A limitation is that the CronJob assumes that the *only* peers the Route Server will have belong to this cluster's nodes. It will likely delete other peers currently.
+
 ### Safety Mechanisms
 
 - **Minimum Age Check**: Only deletes peers older than 30 minutes
