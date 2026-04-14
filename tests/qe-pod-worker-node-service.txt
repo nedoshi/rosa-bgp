@@ -1,0 +1,23 @@
+QE's results when testing a pod in a CUDN to a port on a worker node host API service.
+
+oc get ep -n default
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME         ENDPOINTS                                         AGE
+kubernetes   10.0.57.255:6443,10.0.58.57:6443,10.0.63.0:6443   27h
+
+% oc rsh -n test hello-pod
+~ $ curl  10.0.57.255:6443 -k
+Client sent an HTTP request to an HTTPS server.
+~ $ curl  10.0.57.255:6443 -k -v
+*   Trying 10.0.57.255:6443...
+* Connected to 10.0.57.255 (10.0.57.255) port 6443 (#0)
+> GET / HTTP/1.1
+> Host: 10.0.57.255:6443
+> User-Agent: curl/7.79.1
+> Accept: */*
+> 
+* Mark bundle as not supporting multiuse
+* HTTP 1.0, assume close after body
+< HTTP/1.0 400 Bad Request
+< 
+Client sent an HTTP request to an HTTPS server.

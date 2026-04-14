@@ -2,6 +2,7 @@
     * VM with primary CUDN - Uses a VM in CUDN A, and a second VM in CUDN B
         * CUDN VM A/B traffic to Internet - expected to succeed - PASS
         * EC2 instance in same VPC to CUDN A/B VM - expected to succeed - PASS
+            * Note: A [flapping problem](connectivity-reproducer.md) was observed in bidirectional communication between a VM and an EC2 instance on 4.20.17, but is fixed by 4.21.8. This was originally believed to be because of live migration, but that was a red herring. Traffic was egressing from the CUDN through nodes that were not `bgp_router` nodes, and seemed to be stopping at the ENI, likely because of some combination of src/dest checks and security groups. The expected behavior is that traffic egresses from the same node the VM is on.
         * EC2 instance in external VPC to transit gateway to CUDN VM A/B - expected to succeed - PASS
         * CUDN VM A/B to EC2 instance in same VPC - expected to succeed - PASS
         * CUDN VM A/B to transit gateway to EC2 instance in external VPC - expected to succeed - PASS
@@ -23,30 +24,7 @@
                     * Note: only this one cluster-internal service name was tested; this does not prove all cluster-internal names fail
                     * Note: QE was able to nslookup kubernetes.default.svc.cluster.local from within a pod in a CUDN, so this may be specific to VMs.
         * CUDN VM A/B to port on worker node host API service
-            * Here is what was tested before with pods, by way of explanation
-              ```
-oc get ep -n default
-Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
-NAME         ENDPOINTS                                         AGE
-kubernetes   10.0.57.255:6443,10.0.58.57:6443,10.0.63.0:6443   27h
-
-% oc rsh -n test hello-pod
-~ $ curl  10.0.57.255:6443 -k
-Client sent an HTTP request to an HTTPS server.
-~ $ curl  10.0.57.255:6443 -k -v
-*   Trying 10.0.57.255:6443...
-* Connected to 10.0.57.255 (10.0.57.255) port 6443 (#0)
-> GET / HTTP/1.1
-> Host: 10.0.57.255:6443
-> User-Agent: curl/7.79.1
-> Accept: */*
-> 
-* Mark bundle as not supporting multiuse
-* HTTP 1.0, assume close after body
-< HTTP/1.0 400 Bad Request
-< 
-Client sent an HTTP request to an HTTPS server.
-            ```
+            * Note: See [tests/qe-pod-worker-node-service.txt] for what QE tried previously
         * CUDN A VM to CUDN A VM (on the same node) - expected to succeed
         * CUDN A VM to CUDN A VM (on a different node) - expected to succeed - PASS
         * CUDN A VM to CUDN A VM (different node) - expected to succeed - PASS
@@ -61,8 +39,7 @@ Client sent an HTTP request to an HTTPS server.
         * Worker node (via `oc debug node`) same host to CUDN A/B VM - expected to not succeed - PASS
             * UDNs are expected to isolate networking even on the same host
         * Worker node (via `oc debug node`) diff host to CUDN A/B VM - expected to not succeed - PASS
-        * CUDN A VM traffic in and out to VPC continue to work after VM is live-migrated - expected to succeed - FAIL
-            * Observed issue where after live migration, pings from EC2 in same VPC to VM were flappy, with periods of connectivity and periods where all packets were dropped. It is possible that this is actually a result of setting the `allow-pod-bridge-network-live-migration` annotation, which should not have been necessary but without it the VM was not live-migratable at all. See [reproducer](connectivity-reproducer.md) and [Claude Code's writeup of its troubleshooting of the problem](live-migration-connectivity-issue.md) the latter of which may be helpful or complete nonsense.
+        * CUDN A VM traffic in and out to VPC continue to work after VM is live-migrated - expected to succeed - PASS
     * ClusterIP Service with same L2 network
         * CUDN VM to clusterIP(internalTrafficPolicy=Cluster) with same node - expected to succeed - PASS
         * CUDN VM to clusterIP(internalTrafficPolicy=Cluster) with diff node - expected to succeed - PASS
