@@ -1,6 +1,7 @@
 * Connectivity - for each test case, verify the following work from source to destination: ping (except to k8s services), curl
     * VM with primary CUDN - Uses a VM in CUDN A, and a second VM in CUDN B
         * CUDN VM A/B traffic to Internet - expected to succeed - PASS
+        * CUDN VM A/B DNS lookups to Internet UDP/TCP - expected to succeed
         * EC2 instance in same VPC to CUDN A/B VM - expected to succeed - PASS
             * Note: A [flapping problem](connectivity-reproducer.md) was observed in bidirectional communication between a VM and an EC2 instance on 4.20.17, but is fixed by 4.21.8. This was originally believed to be because of live migration, but that was a red herring. Traffic was egressing from the CUDN through nodes that were not `bgp_router` nodes, and seemed to be stopping at the ENI, likely because of some combination of src/dest checks and security groups. The expected behavior is that traffic egresses from the same node the VM is on.
         * EC2 instance in external VPC to transit gateway to CUDN VM A/B - expected to succeed - PASS
@@ -12,7 +13,7 @@
             * TCP/HTTPS connectivity to kapi succeeded
             * `/version` and `/readyz` returned 200
             * `GET /` returned 403 as `system:anonymous`, which is expected for unauthenticated access
-        * CUDN VM A/B to kube dns - expected to succeed - PARTIAL
+        * CUDN VM A/B to kube dns UDP/TCP - expected to succeed - PARTIAL (test results below did not explicitly specify UDP or TCP)
             * VM DNS server is `172.30.0.10`
             * reachability to DNS server:
                 * `nc -vz 172.30.0.10 53` - PASS
